@@ -8,7 +8,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 
 class AuthViewModel(private val context: Context) : ViewModel() {
     
-    private val authRepository = AuthRepository.getInstance(context)
+    private val authRepository = AuthRepository.getInstance(context.applicationContext)
     private val compositeDisposable = CompositeDisposable()
     
     // UI状态
@@ -29,17 +29,21 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         val disposable = authRepository.login(username, password)
             .subscribe(
                 { response ->
-                    isLoading.value = false
-                    if (response.errorCode == 0) {
-                        loginResult.value = "登录成功"
-                        isLoggedIn.value = true
-                    } else {
-                        loginResult.value = response.errorMsg
+                    if (!compositeDisposable.isDisposed) {
+                        isLoading.value = false
+                        if (response.errorCode == 0) {
+                            loginResult.value = "登录成功"
+                            isLoggedIn.value = true
+                        } else {
+                            loginResult.value = response.errorMsg
+                        }
                     }
                 },
                 { error ->
-                    isLoading.value = false
-                    loginResult.value = "网络错误: ${error.message}"
+                    if (!compositeDisposable.isDisposed) {
+                        isLoading.value = false
+                        loginResult.value = "网络错误: ${error.message}"
+                    }
                 }
             )
         
@@ -68,17 +72,21 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         val disposable = authRepository.register(username, password, repassword)
             .subscribe(
                 { response ->
-                    isLoading.value = false
-                    if (response.errorCode == 0) {
-                        registerResult.value = "注册成功"
-                        isLoggedIn.value = true
-                    } else {
-                        registerResult.value = response.errorMsg
+                    if (!compositeDisposable.isDisposed) {
+                        isLoading.value = false
+                        if (response.errorCode == 0) {
+                            registerResult.value = "注册成功"
+                            isLoggedIn.value = true
+                        } else {
+                            registerResult.value = response.errorMsg
+                        }
                     }
                 },
                 { error ->
-                    isLoading.value = false
-                    registerResult.value = "网络错误: ${error.message}"
+                    if (!compositeDisposable.isDisposed) {
+                        isLoading.value = false
+                        registerResult.value = "网络错误: ${error.message}"
+                    }
                 }
             )
         
@@ -99,6 +107,13 @@ class AuthViewModel(private val context: Context) : ViewModel() {
     
     override fun onCleared() {
         super.onCleared()
+        // 清理RxJava disposables
         compositeDisposable.clear()
+        
+        // 重置UI状态，防止内存泄露
+        isLoading.value = false
+        loginResult.value = null
+        registerResult.value = null
+        // 注意：不重置isLoggedIn状态，因为这应该持久化
     }
 } 

@@ -71,6 +71,9 @@ dependencies {
     // Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
     
+    // 内存泄露检测工具 (仅在debug版本中使用)
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

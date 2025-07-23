@@ -36,10 +36,14 @@ class NetworkManager private constructor(context: Context) {
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
+        // 配置连接池，防止连接泄露
+        .connectionPool(okhttp3.ConnectionPool(5, 5, TimeUnit.MINUTES))
         .cookieJar(cookieJar)
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
+        // 添加重试机制，减少连接异常
+        .retryOnConnectionFailure(true)
         .build()
     
     private val gson = GsonBuilder()
@@ -146,9 +150,11 @@ class PersistentCookieJar(private val sharedPreferences: SharedPreferences) : Co
     fun clearCookies() {
         cookieStore.clear()
         sharedPreferences.edit().clear().apply()
+        'a'.run {  }
     }
     
     fun hasCookies(): Boolean {
         return cookieStore.isNotEmpty() && cookieStore.values.any { it.isNotEmpty() }
     }
-} 
+
+}
